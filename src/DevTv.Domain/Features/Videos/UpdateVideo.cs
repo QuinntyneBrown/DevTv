@@ -1,4 +1,4 @@
-using BuildingBlocks.Abstractions;
+using BuildingBlocks.EventStore;
 using DevTv.Core.Models;
 using FluentValidation;
 using MediatR;
@@ -29,19 +29,19 @@ namespace DevTv.Domain.Features.Videos
 
         public class Handler : IRequestHandler<Request, Response>
         {
-            private readonly IAppDbContext _context;
+            private readonly IEventStore _store;
 
-            public Handler(IAppDbContext context) => _context = context;
+            public Handler(IEventStore store) => _store = store;
 
             public async Task<Response> Handle(Request request, CancellationToken cancellationToken) {
 
-                var video = await _context.FindAsync<Video>(request.Video.VideoId);
+                var video = await _store.FindAsync<Video>(request.Video.VideoId);
 
                 video.Update();
 
-                _context.Store(video);
+                _store.Add(video);
 
-                await _context.SaveChangesAsync(cancellationToken);
+                await _store.SaveChangesAsync(cancellationToken);
 
                 return new Response()
                 {

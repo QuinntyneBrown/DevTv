@@ -1,4 +1,3 @@
-using BuildingBlocks.Abstractions;
 using DevTv.Core.Data;
 using DevTv.Core.Models;
 using MediatR;

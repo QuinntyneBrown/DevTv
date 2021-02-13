@@ -6,7 +6,7 @@ namespace DevTv.Core.Data
 {
     public class DevTvDbContext: DbContext, IDevTvDbContext
     {
-        public DevTvDbContext(DbContextOptions options)
+        public DevTvDbContext(DbContextOptions<DevTvDbContext> options)
             :base(options) { }
 
         public static readonly ILoggerFactory ConsoleLoggerFactory

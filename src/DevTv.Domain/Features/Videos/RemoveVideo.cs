@@ -1,10 +1,10 @@
-using BuildingBlocks.Abstractions;
 using DevTv.Core.Models;
 using FluentValidation;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using BuildingBlocks.EventStore;
 
 namespace DevTv.Domain.Features.Videos
 {
@@ -29,9 +29,9 @@ namespace DevTv.Domain.Features.Videos
 
         public class Handler : IRequestHandler<Request, Unit>
         {
-            private readonly IAppDbContext _context;
+            private readonly IEventStore _context;
 
-            public Handler(IAppDbContext context) => _context = context;
+            public Handler(IEventStore context) => _context = context;
 
             public async Task<Unit> Handle(Request request, CancellationToken cancellationToken) {
 
@@ -39,14 +39,11 @@ namespace DevTv.Domain.Features.Videos
 
                 video.Remove();
 
-                _context.Store(video);
+                _context.Add(video);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return new Unit()
-                {
-
-                };
+                return new () { };
             }
         }
     }

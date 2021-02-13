@@ -14,5 +14,15 @@ namespace DevTv.Core.Models
 
         public Guid VideoId { get; private set; }
         public DateTime? Deleted { get; private set; }
+
+        public void Remove()
+        {
+
+        }
+
+        public void Update()
+        {
+
+        }
     }
 }

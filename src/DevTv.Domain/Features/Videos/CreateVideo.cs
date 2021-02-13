@@ -1,4 +1,3 @@
-using BuildingBlocks.Abstractions;
 using BuildingBlocks.EventStore;
 using DevTv.Core.Models;
 using FluentValidation;

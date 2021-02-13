@@ -1,17 +1,14 @@
 using DevTv.Core.Data;
-using DevTv.Domain.Features;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using DevTv.Domain.Features.Videos;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Text;
-using System.Threading.Tasks;
+using BuildingBlocks.AspNetCore;
+using DevTv.Core.Handlers;
+using BuildingBlocks.EventStore;
 
 namespace DevTv.Api
 {
@@ -42,7 +39,6 @@ namespace DevTv.Api
                 options.CustomSchemaIds(x => x.FullName);
             });
 
-
             services.AddCors(options => options.AddPolicy("CorsPolicy",
                 builder => builder
                 .WithOrigins("http://localhost:4200")
@@ -51,24 +47,36 @@ namespace DevTv.Api
                 .SetIsOriginAllowed(isOriginAllowed: _ => true)
                 .AllowCredentials()));
 
-            services.AddHttpContextAccessor();
+            services.AddEventStore();
 
-            //services
+            services.AddHttpContextAccessor();
+            
             services.AddTransient<IDevTvDbContext, DevTvDbContext>();
 
-            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler
-            {
-                InboundClaimTypeMap = new Dictionary<string, string>()
-            };
+            services.AddMediatR(typeof(CreateVideo), typeof(EventStoreChangedHandler));
 
+            services.AddValidation(typeof(CreateVideo));
+            
             services.AddDbContext<DevTvDbContext>(options =>
             {
-                options.UseSqlServer(configuration["Data:DefaultConnection:ConnectionString"],
+                options
+                .LogTo(Console.WriteLine)
+                .UseSqlServer(configuration["Data:DefaultConnection:ConnectionString"],
                     builder => builder.MigrationsAssembly("DevTv.Api")
                         .EnableRetryOnFailure())
-                .UseLoggerFactory(DevTvDbContext.ConsoleLoggerFactory)
                 .EnableSensitiveDataLogging();
             });
+
+            services.AddDbContext<EventStore>((options =>
+            {
+                options
+                .LogTo(Console.WriteLine)
+                .UseSqlServer(configuration["Data:DefaultConnection:ConnectionString"],
+                    builder => builder
+                    .MigrationsAssembly("DevTv.Api")
+                        .EnableRetryOnFailure())
+                .EnableSensitiveDataLogging();
+            }));
 
             services.AddControllers();
         }
